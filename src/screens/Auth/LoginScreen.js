@@ -5,22 +5,30 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
-  Image,
 } from 'react-native';
 import {useAuth} from '../../contexts/AuthContext';
+import CustomDialog from '../../components/CustomDialog';
 import {COLORS} from '../../utils/constants';
 
 const LoginScreen = ({navigation}) => {
   const {login} = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [dialogConfig, setDialogConfig] = useState({});
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password');
+      setDialogConfig({
+        title: 'Error',
+        message: 'Please enter email and password',
+        type: 'error',
+        confirmText: 'OK',
+      });
+      setDialogVisible(true);
       return;
     }
 
@@ -29,7 +37,13 @@ const LoginScreen = ({navigation}) => {
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Login Failed', result.message);
+      setDialogConfig({
+        title: 'Login Failed',
+        message: result.message,
+        type: 'error',
+        confirmText: 'OK',
+      });
+      setDialogVisible(true);
     }
   };
 
@@ -45,6 +59,7 @@ const LoginScreen = ({navigation}) => {
         <TextInput
           style={styles.input}
           placeholder="Enter your email"
+          placeholderTextColor="#999"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -52,13 +67,27 @@ const LoginScreen = ({navigation}) => {
         />
 
         <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Enter your password"
+            placeholderTextColor="#999"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
+          <TouchableOpacity
+            style={styles.eyeIcon}
+            onPress={() => setShowPassword(!showPassword)}>
+            <Text style={styles.eyeIconText}>
+              {showPassword ? 'Hide' : 'Show'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -70,7 +99,19 @@ const LoginScreen = ({navigation}) => {
             <Text style={styles.buttonText}>Login</Text>
           )}
         </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.linkText}>
+            Don't have an account? <Text style={styles.linkTextBold}>Sign Up</Text>
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      <CustomDialog
+        visible={dialogVisible}
+        onClose={() => setDialogVisible(false)}
+        {...dialogConfig}
+      />
     </View>
   );
 };
@@ -114,12 +155,41 @@ const styles = StyleSheet.create({
     padding: 14,
     fontSize: 16,
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 14,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  eyeIcon: {
+    padding: 14,
+  },
+  eyeIconText: {
+    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  forgotPasswordText: {
+    textAlign: 'right',
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 12,
+  },
   button: {
     backgroundColor: COLORS.primary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 24,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -127,6 +197,16 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFF',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  linkText: {
+    textAlign: 'center',
+    marginTop: 20,
+    color: COLORS.textLight,
+    fontSize: 14,
+  },
+  linkTextBold: {
+    color: COLORS.primary,
     fontWeight: 'bold',
   },
 });

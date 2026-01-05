@@ -1,12 +1,14 @@
 import api from './api';
 
 export const getOrders = async () => {
-  const response = await api.get('/api/orders/my-orders/');
+  // Use staff-orders endpoint for branch-specific orders
+  const response = await api.get('/api/orders/staff-orders/');
   return response.data.orders || response.data;
 };
 
 export const getOrderDetail = async orderId => {
-  const response = await api.get(`/api/orders/my-orders/${orderId}/`);
+  // Use staff-orders endpoint for branch-specific order details
+  const response = await api.get(`/api/orders/staff-orders/${orderId}/`);
   return response.data;
 };
 

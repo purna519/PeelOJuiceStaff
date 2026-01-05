@@ -36,24 +36,35 @@ export const AuthProvider = ({children}) => {
     try {
       const response = await loginAPI(email, password);
 
-      // Validate staff access
-      if (!response.is_staff) {
-        throw new Error('You do not have staff access');
+      // Extract data from response
+      const {access_token, refresh_token, user: userData} = response;
+
+      // Check if user is staff
+      if (!userData.is_staff) {
+        return {
+          success: false,
+          message: 'This app is for staff members only. Please use the customer app.',
+        };
       }
 
-      if (!response.assigned_branch) {
-        throw new Error('No branch assigned. Contact administrator.');
+      // Check if staff has assigned branch
+      if (!userData.assigned_branch) {
+        return {
+          success: false,
+          message: 'No branch assigned. Please contact administrator.',
+        };
       }
 
-      // Store data
+      // Store data including branch
       await AsyncStorage.multiSet([
-        ['accessToken', response.access_token],
-        ['staff', JSON.stringify(response.user)],
-        ['branch', JSON.stringify(response.assigned_branch)],
+        ['accessToken', access_token],
+        ['refreshToken', refresh_token],
+        ['staff', JSON.stringify(userData)],
+        ['branch', JSON.stringify(userData.assigned_branch)],
       ]);
 
-      setStaff(response.user);
-      setBranch(response.assigned_branch);
+      setStaff(userData);
+      setBranch(userData.assigned_branch);
 
       return {success: true};
     } catch (error) {
@@ -80,6 +91,7 @@ export const AuthProvider = ({children}) => {
         isAuthenticated: !!staff,
         login,
         logout,
+        loadStaffData,
       }}>
       {children}
     </AuthContext.Provider>

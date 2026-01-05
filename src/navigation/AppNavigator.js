@@ -8,6 +8,10 @@ import {COLORS} from '../utils/constants';
 
 // Screens
 import LoginScreen from '../screens/Auth/LoginScreen';
+import RegisterScreen from '../screens/Auth/RegisterScreen';
+import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
+import OTPScreen from '../screens/Auth/OTPScreen';
+import ResetPasswordScreen from '../screens/Auth/ResetPasswordScreen';
 import DashboardScreen from '../screens/Dashboard/DashboardScreen';
 import OrdersListScreen from '../screens/Orders/OrdersListScreen';
 import OrderDetailScreen from '../screens/Orders/OrderDetailScreen';
@@ -78,10 +82,44 @@ const AppNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      onStateChange={(state) => {
+        // Don't persist navigation state to prevent auto-navigation issues
+        console.log('Navigation state changed:', state);
+      }}>
       <Stack.Navigator screenOptions={{headerShown: false}}>
         {!isAuthenticated ? (
-          <Stack.Screen name="Login" component={LoginScreen} />
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen 
+              name="Register" 
+              component={RegisterScreen}
+              options={{
+                headerShown: true,
+                headerStyle: {backgroundColor: COLORS.primary},
+                headerTintColor: '#FFF',
+                headerTitle: 'Create Account',
+              }}
+            />
+            <Stack.Screen 
+              name="ForgotPassword" 
+              component={ForgotPasswordScreen}
+            />
+            <Stack.Screen 
+              name="OTP" 
+              component={OTPScreen}
+              options={{
+                headerShown: true,
+                headerStyle: {backgroundColor: COLORS.primary},
+                headerTintColor: '#FFF',
+                headerTitle: 'Verify Email',
+              }}
+            />
+            <Stack.Screen 
+              name="ResetPassword" 
+              component={ResetPasswordScreen}
+            />
+          </>
         ) : (
           <Stack.Screen name="Main" component={MainTabs} />
         )}

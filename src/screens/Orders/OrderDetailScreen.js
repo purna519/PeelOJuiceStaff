@@ -13,24 +13,41 @@ import {getOrderDetail, updateOrderStatus} from '../../services/orders';
 import {COLORS, STATUS_OPTIONS, STATUS_DISPLAY} from '../../utils/constants';
 
 const OrderDetailScreen = ({route, navigation}) => {
-  const {orderId} = route.params;
+  const {orderId} = route.params || {};
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
+    if (!orderId) {
+      Alert.alert('Error', 'No order ID provided');
+      navigation.goBack();
+      return;
+    }
     fetchOrder();
   }, []);
 
   const fetchOrder = async () => {
     try {
+      console.log('Fetching order with ID:', orderId);
       const data = await getOrderDetail(orderId);
+      console.log('Order data received:', data);
       setOrder(data);
       setSelectedStatus(data.status);
     } catch (error) {
       console.error('Error fetching order:', error);
-      Alert.alert('Error', 'Failed to load order details');
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      Alert.alert(
+        'Error',
+        `Failed to load order #${orderId}. ${
+          error.response?.status === 404
+            ? 'Order not found or not accessible.'
+            : 'Please try again.'
+        }`,
+      );
+      navigation.goBack();
     } finally {
       setLoading(false);
     }
@@ -112,7 +129,7 @@ const OrderDetailScreen = ({route, navigation}) => {
               <Text style={styles.itemName}>{item.juice_name}</Text>
               <Text style={styles.itemQty}>Qty: {item.quantity}</Text>
             </View>
-            <Text style={styles.itemPrice}>₹{item.price}</Text>
+            <Text style={styles.itemPrice}>₹{item.price_per_item}</Text>
           </View>
         ))}
       </View>

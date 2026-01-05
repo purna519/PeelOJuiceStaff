@@ -24,22 +24,26 @@ const OrdersListScreen = ({navigation}) => {
   const fetchOrders = async () => {
     try {
       const allOrders = await getOrders();
+      
+      // Safety check - ensure allOrders is an array
+      const ordersList = Array.isArray(allOrders) ? allOrders : [];
 
       if (tab === 'active') {
         setOrders(
-          allOrders.filter(o =>
+          ordersList.filter(o =>
             ['pending', 'confirmed', 'preparing'].includes(o.status),
           ),
         );
       } else {
         setOrders(
-          allOrders.filter(o =>
+          ordersList.filter(o =>
             ['out_for_delivery', 'delivered'].includes(o.status),
           ),
         );
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
+      setOrders([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -103,24 +107,38 @@ const OrdersListScreen = ({navigation}) => {
         <TouchableOpacity
           style={[styles.tab, tab === 'active' && styles.activeTab]}
           onPress={() => setTab('active')}>
-          <Text
-            style={[
-              styles.tabText,
-              tab === 'active' && styles.activeTabText,
-            ]}>
-            Active Orders
-          </Text>
+          <View style={styles.tabContent}>
+            <Text
+              style={[
+                styles.tabText,
+                tab === 'active' && styles.activeTabText,
+              ]}>
+              Active Orders
+            </Text>
+            {tab === 'active' && orders.length > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{orders.length}</Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, tab === 'completed' && styles.activeTab]}
           onPress={() => setTab('completed')}>
-          <Text
-            style={[
-              styles.tabText,
-              tab === 'completed' && styles.activeTabText,
-            ]}>
-            Completed
-          </Text>
+          <View style={styles.tabContent}>
+            <Text
+              style={[
+                styles.tabText,
+                tab === 'completed' && styles.activeTabText,
+              ]}>
+              Completed
+            </Text>
+            {tab === 'completed' && orders.length > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{orders.length}</Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -173,6 +191,25 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: COLORS.primary,
+  },
+  tabContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  badge: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   orderCard: {
     backgroundColor: '#FFF',
